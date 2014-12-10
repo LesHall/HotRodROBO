@@ -12,32 +12,34 @@ int fullStep[][4] = {  // two bit Gray code
 int steps = 0;
 long pos = 0;
 long command = 0;
+int msgCount = 0;
 
 
 void setup()
 {
+  // set I/O status of pins
   pinMode(controlPin, INPUT);
   for(int i=0; i<sizeof(coilPins); ++i)
     pinMode(coilPins[i], OUTPUT);
-    
-  // reset sets pos to zero
-  steps = 0;
-  pos = 0;
-  command = 0;
 }
 
 
 void loop()
 { 
   // read the high and low pulse durations
-  unsigned long pulseHigh = pulseIn(controlPin, HIGH, 2000);
-  unsigned long pulseLow = pulseIn(controlPin, LOW, 2000);
+  unsigned long pulseHigh = pulseIn(controlPin, HIGH, 2200);
+  unsigned long pulseLow = pulseIn(controlPin, LOW, 2200);
   
   // set commanded position if the control period matches
   unsigned long T = pulseHigh + pulseLow;
-  if ( (T > 900) && (T < 1100) )  // check for frequency
+  if ( (T > 1000) && (T < 1100) )  // check for frequency
+    ++msgCount;
+  else
+    msgCount = 0;  
+
+  if (msgCount == 2)
     command = pulseHigh - pulseLow;
-  
+
   // take a step toward the commanded position if not there yet
   if (pos < command  )
   {
@@ -58,4 +60,6 @@ void loop()
       digitalWrite(coilPins[i], LOW);
     else
       digitalWrite(coilPins[i], HIGH);
+      
+  delay(10);
 }
